@@ -1,6 +1,7 @@
 import {
   GraphQLID,
   GraphQLList,
+  GraphQLNonNull,
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLString,
@@ -19,6 +20,7 @@ import {
 import {
   addCategory,
   findCategory,
+  // findCategory2,
   findCategoryForNav,
   patchCategory,
 } from "./resolvers/category.resolvers";
@@ -29,17 +31,20 @@ const RootQuery = new GraphQLObjectType({
     category: {
       type: CategoryType,
       args: { id: { type: GraphQLID } },
-      resolve: findCategory,
+      // resolve: findCategory,
+      resolve: (_parent, args) => findCategory(args.id),
     },
     categoryForNav: {
       type: CategoryForNavType,
       args: { id: { type: GraphQLID } },
-      resolve: findCategoryForNav,
+      // resolve: findCategoryForNav,
+      resolve: (_parent, args) => findCategoryForNav(args.id),
     },
     product: {
       type: ProductType,
       args: { id: { type: GraphQLID } },
-      resolve: findProduct,
+      // resolve: findProduct,
+      resolve: (_parent, args) => findProduct(args.id),
     },
     products: {
       type: new GraphQLList(ProductType),
@@ -47,7 +52,7 @@ const RootQuery = new GraphQLObjectType({
         filter: { type: GraphQLString },
         options: { type: GraphQLString },
       },
-      resolve: findProducts,
+      resolve: (_parent, args) => findProducts(args),
     },
   },
 });

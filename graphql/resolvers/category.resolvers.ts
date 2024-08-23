@@ -2,24 +2,26 @@ import { GraphQLError, GraphQLFieldResolver } from "graphql";
 import { Category } from "../../models/category.model";
 import { Product } from "../../models/product.model";
 
-export const findCategoryForNav: GraphQLFieldResolver<
-  any,
-  any,
-  { id: string | null }
-> = async (_parent, args) => {
+const RootCategory = () => new Category({ _id: null });
+
+export async function findCategoryForNav(id: string | null) {
   // 1. If id = null, return dummy (null) category
   // 2. Id category not found, return dummy (null) category
   // 3. If category is leaf:
   //  3.1. If parentId is null: return dummy
   //  3.2. Else: fetch parent category
 
-  const RootCategory = () => new Category({ _id: null });
-
-  if (!args.id) {
+  if (!id) {
     return RootCategory();
   }
 
-  let category = await Category.findById(args.id);
+  let category;
+  try {
+    category = await Category.findById(id);
+  } catch {
+    throw new GraphQLError("Category not found");
+  }
+
   let categoryParentId: string | null | undefined;
 
   if (!category) {
@@ -37,21 +39,111 @@ export const findCategoryForNav: GraphQLFieldResolver<
   }
 
   return category;
-};
+}
 
-export const findByParentId: GraphQLFieldResolver<
-  InstanceType<typeof Category>,
-  any
-> = async (parent) => {
-  return Category.find({ parentId: parent.id });
-};
+// export const findCategoryForNav: GraphQLFieldResolver<
+//   any,
+//   any,
+//   { id: string | null }
+// > = async (_parent, args) => {
+//   // 1. If id = null, return dummy (null) category
+//   // 2. Id category not found, return dummy (null) category
+//   // 3. If category is leaf:
+//   //  3.1. If parentId is null: return dummy
+//   //  3.2. Else: fetch parent category
 
-export const findCategories: GraphQLFieldResolver<
-  InstanceType<typeof Product>,
-  any
-> = (parent) => {
-  return Category.find({ _id: { $in: parent.categoryIds } });
-};
+//   const RootCategory = () => new Category({ _id: null });
+
+//   if (!args.id) {
+//     return RootCategory();
+//   }
+
+//   let category;
+//   try {
+//     category = await Category.findById(args.id);
+//   } catch {
+//     throw new GraphQLError("Category not found");
+//   }
+
+//   let categoryParentId: string | null | undefined;
+
+//   if (!category) {
+//     return RootCategory();
+//   } else {
+//     categoryParentId = category.parentId;
+//   }
+
+//   if (category.leaf) {
+//     if (!categoryParentId) {
+//       return RootCategory();
+//     } else {
+//       category = await Category.findById(categoryParentId);
+//     }
+//   }
+
+//   return category;
+// };
+
+// export const findCategory: GraphQLFieldResolver<
+//   any,
+//   any,
+//   { id: string }
+// > = async (_parent, args) => {
+//   if (!args.id) {
+//     return new Category({ _id: null });
+//   }
+
+//   try {
+//     return await Category.findById(args.id);
+//   } catch {
+//     throw new GraphQLError("Category not found");
+//   }
+// };
+
+export async function findCategory(id: string | null) {
+  if (!id) {
+    return RootCategory();
+  }
+
+  try {
+    return await Category.findById(id);
+  } catch {
+    console.log("error");
+
+    throw new GraphQLError("Category not found");
+  }
+}
+
+export async function findCategories(args: {
+  filter?: string;
+  options?: string;
+}) {
+  let filter = {};
+  if (args.filter) {
+    filter = JSON.parse(args.filter);
+  }
+
+  let options = {};
+  if (args.options) {
+    options = JSON.parse(args.options);
+  }
+
+  return Category.find(filter, null, options);
+}
+
+// export const findByParentId: GraphQLFieldResolver<
+//   InstanceType<typeof Category>,
+//   any
+// > = async (parent) => {
+//   return Category.find({ parentId: parent.id });
+// };
+
+// export const findCategories: GraphQLFieldResolver<
+//   InstanceType<typeof Product>,
+//   any
+// > = (parent) => {
+//   return Category.find({ _id: { $in: parent.categoryIds } });
+// };
 
 export const addCategory: GraphQLFieldResolver<
   any,
@@ -91,17 +183,3 @@ export const patchCategory: GraphQLFieldResolver<
     }
   }
 };
-
-export const findCategory: GraphQLFieldResolver<
-  any,
-  any,
-  { id: string }
-> = async (_parent, args) => {
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-
-  if (!args.id) {
-    return new Category({ _id: null });
-  }
-  return Category.findById(args.id);
-};
-

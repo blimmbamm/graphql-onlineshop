@@ -7,8 +7,11 @@ import {
   GraphQLString,
 } from "graphql";
 import { ProductType } from "./product.types";
-import { findByParentId } from "../resolvers/category.resolvers";
-import { findProductsForCat } from "../resolvers/product.resolvers";
+import {
+  // findByParentId,
+  findCategories,
+} from "../resolvers/category.resolvers";
+import { findProducts } from "../resolvers/product.resolvers";
 
 export const CategoryForNavType: GraphQLObjectType = new GraphQLObjectType({
   name: "CategoryForNav",
@@ -19,7 +22,9 @@ export const CategoryForNavType: GraphQLObjectType = new GraphQLObjectType({
     },
     subCategories: {
       type: new GraphQLList(CategoryType),
-      resolve: findByParentId,
+      // resolve: findByParentId,
+      resolve: (parent) =>
+        findCategories({ filter: JSON.stringify({ parentId: parent.id }) }),
     },
   }),
 });
@@ -30,14 +35,23 @@ export const CategoryType: GraphQLObjectType = new GraphQLObjectType({
     id: { type: GraphQLID },
     name: { type: GraphQLString },
     parentId: { type: GraphQLID },
+    affe: { type: GraphQLBoolean },
     leaf: { type: GraphQLBoolean },
     subCategories: {
       type: new GraphQLList(CategoryType),
-      resolve: findByParentId,
+      // resolve: findByParentId,
+      resolve: (parent) =>
+        findCategories({ filter: JSON.stringify({ parentId: parent.id }) }),
     },
     products: {
       type: new GraphQLList(ProductType),
-      resolve: findProductsForCat,
+      resolve: (parent) => {
+        const filter = parent.id
+          ? JSON.stringify({ categoryIds: parent.id })
+          : undefined;
+
+        return findProducts({ filter });
+      },
     },
   }),
 });
