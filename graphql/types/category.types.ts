@@ -7,10 +7,7 @@ import {
   GraphQLString,
 } from "graphql";
 import { ProductType } from "./product.types";
-import {
-  // findByParentId,
-  findCategories,
-} from "../resolvers/category.resolvers";
+import { findCategories } from "../resolvers/category.resolvers";
 import { findProducts } from "../resolvers/product.resolvers";
 
 export const CategoryForNavType: GraphQLObjectType = new GraphQLObjectType({
@@ -22,7 +19,6 @@ export const CategoryForNavType: GraphQLObjectType = new GraphQLObjectType({
     },
     subCategories: {
       type: new GraphQLList(CategoryType),
-      // resolve: findByParentId,
       resolve: (parent) =>
         findCategories({ filter: JSON.stringify({ parentId: parent.id }) }),
     },
@@ -39,7 +35,6 @@ export const CategoryType: GraphQLObjectType = new GraphQLObjectType({
     leaf: { type: GraphQLBoolean },
     subCategories: {
       type: new GraphQLList(CategoryType),
-      // resolve: findByParentId,
       resolve: (parent) =>
         findCategories({ filter: JSON.stringify({ parentId: parent.id }) }),
     },

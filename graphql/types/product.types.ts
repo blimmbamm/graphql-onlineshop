@@ -10,7 +10,7 @@ import { CategoryType } from "./category.types";
 import { findCategories } from "../resolvers/category.resolvers";
 
 export const ProductType: GraphQLObjectType = new GraphQLObjectType({
-  name: "Product",  
+  name: "Product",
   fields: () => ({
     id: { type: GraphQLID },
     name: { type: GraphQLString },
@@ -25,7 +25,12 @@ export const ProductType: GraphQLObjectType = new GraphQLObjectType({
     categoryIds: { type: new GraphQLList(GraphQLString) },
     categories: {
       type: new GraphQLList(CategoryType),
-      resolve: findCategories,
+      resolve: (parent) =>
+        findCategories({
+          filter: JSON.stringify({
+            _id: { $in: parent.categoryIds },
+          }),
+        }),
     },
   }),
 });
